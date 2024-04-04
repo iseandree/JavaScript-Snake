@@ -288,7 +288,93 @@ SNAKE.Snake = SNAKE.Snake || (function() {
                 isFirstGameMove = false;
             }
         };
+         /**
+    * This method converts arrow keys functionality to swipe functionality
+    */
+    me.handleSwipe = function() {
+        // logic for handling swipe functionality
+                
+        //Events for touch and mouse
+                let events = {
+                  mouse: {
+                    down: "mousedown",
+                    move: "mousemove",
+                    up: "mouseup",
+                  },
+                  touch: {
+                    down: "touchstart",
+                    move: "touchmove",
+                    up: "touchend",
+                  },
+                };
 
+                let deviceType = "";
+
+                //Detect touch device
+
+                const isTouchDevice = () => {
+                  try {
+                    //We try to create TouchEvent (it would fail for desktops and throw error)
+                    document.createEvent("TouchEvent");
+                    deviceType = "touch";
+                    return true;
+                  } catch (e) {
+                    deviceType = "mouse";
+                    return false;
+                  }
+                };
+
+                //Get left and top of touchArea
+                let rectLeft = touchArea.getBoundingClientRect().left;
+                let rectTop = touchArea.getBoundingClientRect().top;
+
+                //Get Exact X and Y position of mouse/touch
+                const getXY = (e) => {
+                  mouseX = (!isTouchDevice() ? e.pageX : e.touches[0].pageX) - rectLeft;
+                  mouseY = (!isTouchDevice() ? e.pageY : e.touches[0].pageY) - rectTop;
+                };
+
+                isTouchDevice();
+
+                //Start Swipe
+                touchArea.addEventListener(events[deviceType].down, (event) => {
+                  isSwiped = true;
+                  //Get X and Y Position
+                  getXY(event);
+                  initialX = mouseX;
+                  initialY = mouseY;
+                });
+
+                //Mousemove / touchmove
+                touchArea.addEventListener(events[deviceType].move, (event) => {
+                  if (!isTouchDevice()) {
+                    event.preventDefault();
+                  }
+                  if (isSwiped) {
+                    getXY(event);
+                    let diffX = mouseX - initialX;
+                    let diffY = mouseY - initialY;
+                    if (Math.abs(diffY) > Math.abs(diffX)) {
+                      output.innerText = diffY > 0 ? "Down" : "Up";
+                    } else {
+                      output.innerText = diffX > 0 ? "Right" : "Left";
+                    }
+                  }
+                });
+
+                //Stop Drawing
+                touchArea.addEventListener(events[deviceType].up, () => {
+                  isSwiped = false;
+                });
+
+                touchArea.addEventListener("mouseleave", () => {
+                  isSwiped = false;
+                });
+
+                window.onload = () => {
+                  isSwiped = false;
+                };
+                    };
         /**
         * This method is executed for each move of the snake. It determines where the snake will go and what will happen to it. This method needs to run quickly.
         * @method go
