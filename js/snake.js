@@ -254,9 +254,6 @@ SNAKE.Snake = SNAKE.Snake || (function() {
 
             var snakeLength = me.snakeLength;
 
-            //console.log("lastmove="+lastMove);
-            //console.log("dir="+keyNum);
-
             let directionFound = -1;
 
             switch (keyNum) {
@@ -277,23 +274,30 @@ SNAKE.Snake = SNAKE.Snake || (function() {
                     directionFound = 2;
                     break;
             }
-            if (currentDirection !== lastMove)  // Allow a queue of 1 premove so you can turn again before the first turn registers
-            {
-                preMove = directionFound;
-            }
-            if (Math.abs(directionFound - lastMove) !== 2 && (isFirstMove || isPaused) || isFirstGameMove )  // Prevent snake from turning 180 degrees
-            {
-                currentDirection = directionFound;
-                isFirstMove = false;
-                isFirstGameMove = false;
-            }
-        };
-         /**
-    * This method converts arrow keys functionality to swipe functionality
-    */
+         // If direction is determined by arrow keys, handle it
+    if (direction !== -1) {
+        if (currentDirection !== lastMove && (isFirstMove || isPaused)) {
+            preMove = direction;
+        }
+        if (Math.abs(direction - lastMove) !== 2 && (isFirstMove || isPaused || isFirstGameMove)) {
+            currentDirection = direction;
+            isFirstMove = false;
+            isFirstGameMove = false;
+        }
+
+        return;
+    }
+};
+
+
     me.handleSwipe = function() {
         // logic for handling swipe functionality
-                
+        let touchArea = document.getElementById("game-area");
+        let output = document.getElementById("output");
+         //Initial mouse X and Y positions are 0
+         let mouseX, mouseY, initialX = 0, initialY = 0;
+         let isSwiped = false;
+         let directionFound = ""; // Store the direction found
         //Events for touch and mouse
                 let events = {
                   mouse: {
@@ -356,8 +360,10 @@ SNAKE.Snake = SNAKE.Snake || (function() {
                     let diffY = mouseY - initialY;
                     if (Math.abs(diffY) > Math.abs(diffX)) {
                       output.innerText = diffY > 0 ? "Down" : "Up";
+                      direction = diffY > 0 ? 2 : 0;
                     } else {
                       output.innerText = diffX > 0 ? "Right" : "Left";
+                      direction = diffY > 0 ? 3 : 1;
                     }
                   }
                 });
@@ -375,6 +381,7 @@ SNAKE.Snake = SNAKE.Snake || (function() {
                   isSwiped = false;
                 };
                     };
+  
         /**
         * This method is executed for each move of the snake. It determines where the snake will go and what will happen to it. This method needs to run quickly.
         * @method go
@@ -1081,7 +1088,7 @@ SNAKE.Board = SNAKE.Board || (function() {
             }
 
             myFood.randomlyPlaceFood();
-
+            mySnake.handleSwipe();
             myKeyListener = function(evt) {
                 if (!evt) var evt = window.event;
                 var keyNum = (evt.which) ? evt.which : evt.keyCode;
@@ -1103,7 +1110,7 @@ SNAKE.Board = SNAKE.Board || (function() {
                         }
 
                         mySnake.handleArrowKeys(keyNum);
-
+                        
                         evt.cancelBubble = true;
                         if (evt.stopPropagation) {evt.stopPropagation();}
                         if (evt.preventDefault) {evt.preventDefault();}
@@ -1113,6 +1120,7 @@ SNAKE.Board = SNAKE.Board || (function() {
 
                     mySnake.rebirth();
                     mySnake.handleArrowKeys(keyNum);
+                    
                     me.setBoardState(2); // start the game!
                     mySnake.go();
                 }
@@ -1122,11 +1130,11 @@ SNAKE.Board = SNAKE.Board || (function() {
                 if (evt.preventDefault) {evt.preventDefault();}
                 return false;
             };
-
+            
             // Search for #listenerX to see where this is removed
             SNAKE.addEventListener( elmContainer, "keydown", myKeyListener, false);
         };
-
+        
         /**
         * This method is called when the snake has eaten some food.
         * @method foodEaten
