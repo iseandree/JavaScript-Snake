@@ -365,8 +365,21 @@ SNAKE.Snake = SNAKE.Snake || (function() {
                       output.innerText = diffX > 0 ? "Right" : "Left";
                       direction = diffY > 0 ? 3 : 1;
                     }
+                    // If direction is determined by arrow keys, handle it
+    if (direction !== -1) {
+        if (currentDirection !== lastMove && (isFirstMove || isPaused)) {
+            preMove = direction;
+        }
+        if (Math.abs(direction - lastMove) !== 2 && (isFirstMove || isPaused || isFirstGameMove)) {
+            currentDirection = direction;
+            isFirstMove = false;
+            isFirstGameMove = false;
+        }
+
+
                   }
-                });
+                }
+            });
 
                 //Stop Drawing
                 touchArea.addEventListener(events[deviceType].up, () => {
@@ -762,6 +775,7 @@ SNAKE.Board = SNAKE.Board || (function() {
             mySnake,
             boardState = 1, // 0: in active; 1: awaiting game start; 2: playing game
             myKeyListener,
+            mySwipeListener,
             isPaused = false,//note: both the board and the snake can be paused
             // Board components
             elmContainer, elmPlayingField, elmAboutPanel, elmLengthPanel, elmHighscorePanel, elmWelcome, elmTryAgain, elmWin, elmPauseScreen;
@@ -1088,7 +1102,10 @@ SNAKE.Board = SNAKE.Board || (function() {
             }
 
             myFood.randomlyPlaceFood();
-            mySnake.handleSwipe();
+           
+            //mySnake.handleSwipe();
+           
+           
             myKeyListener = function(evt) {
                 if (!evt) var evt = window.event;
                 var keyNum = (evt.which) ? evt.which : evt.keyCode;
